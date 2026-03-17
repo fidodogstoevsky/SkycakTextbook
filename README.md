@@ -1,0 +1,1 @@
+My solutions to the exercises in [Justin Skycak's](https://www.justinmath.com/) textbook [Introduction to Algorithms and Machine Learning](https://www.justinmath.com/files/introduction-to-algorithms-and-machine-learning.pdf)
