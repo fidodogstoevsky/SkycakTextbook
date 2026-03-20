@@ -43,8 +43,8 @@ def get_args():
 
     args = parser.parse_args()
 
-    if args.flips < 1:
-        parser.error('need at least 1 flip per trial')
+    if args.flips < 0:
+        parser.error('number of flips cannot be negative')
 
     if args.heads < 0:
         parser.error('number of heads cannot be negative')
@@ -65,7 +65,7 @@ def main():
         print(f'the probability of getting precisely {num_heads} heads in {num_flips} flips is approximately {prob}')
     else:
         probs = []
-        for heads in range(0,num_flips):
+        for heads in range(0,num_flips+1):
             probs.append(sim_probability(heads,num_flips))
 
         print(f'probabilities: {probs}')
@@ -73,7 +73,7 @@ def main():
 
         plt.plot(probs, 'ro')
         plt.ylabel('probability')
-        plt.xticks(range(0,num_flips))
+        plt.xticks(range(0,num_flips+1))
         plt.xlabel('# of heads')
         plt.title(f'probability (y) of getting exactly (x) heads, given {num_flips} flips')
         plt.show()
