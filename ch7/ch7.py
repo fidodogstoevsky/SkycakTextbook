@@ -18,7 +18,9 @@ def get_args():
     """Get command-line arguments"""
 
     parser = argparse.ArgumentParser(
-        description='Rock the Casbah',
+        description="""Encrypt and decrypt a message using linear encoding function.
+        use '-u' or '--upperbound' to instead try out differeent coefficients
+        to decrypt a hardcoded message (and leave message blank as '').""",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('message',
@@ -53,6 +55,11 @@ def main():
     args = get_args()
     message = args.message
 
+    code = [377, 717, 71,
+            513, 105, 921, 581, 547, 547, 105, 377, 717,
+            241, 71, 105, 547, 71, 377, 547, 717, 751, 683,
+            785, 513, 241, 547, 751] 
+
     if not args.upperbound:
         a = args.a
         b = args.b
@@ -65,6 +72,14 @@ def main():
     else:
         a = range(args.a, args.upperbound[0])
         b = range(args.b, args.upperbound[1])
+        for i in a:
+            for j in b:
+                if decode_numbers(code, i, j):
+                    print(f'decoding function:  f(x)=(x-{j})/{i}')
+                    print(f'decoded message:    "{''.join(to_alp(decode_numbers(code, i, j)))}"')
+
+
+
 
 # --------------------------------------------------
 def encode_string(message, a, b):
