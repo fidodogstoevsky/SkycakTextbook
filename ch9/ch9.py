@@ -62,12 +62,15 @@ def main():
         print(f'approximating {a}^(1/{n}) within precision {1/(10**p)}')
         print(f'by bisection search for root of function f(x)=x^{n}-{a}')
         print(f'yields approximation {bisection(a, n, p)}')
+    else:
+        print(f'approximating {a}^(1/{n}) within {p} decimal points')
+        print(f'by the Newton-Raphson method taking root of tangent line to f(x)')
+        print(f'yields approximation {newton(a,n,p)}')
 
 
 # --------------------------------------------------
 def bisection(a, n, p):
-    """calculate n-th root of constant a using bisection method
-    calculated to precision decimal points"""
+    """the bisection method"""
 
     # the function we're finding the root of
     def f(x):
@@ -102,6 +105,31 @@ def bisection(a, n, p):
             return iterate(step(bounds))
 
     return sum(iterate(start()))/2
+
+# --------------------------------------------------
+def newton(a,n,p):
+    """the Newton-Raphson method"""
+
+    # the function we're finding the root of
+    def f(x):
+        return x**n - a
+
+    # the derivative f'(x) of the function f(x)
+    def fp(x):
+        return n*(x**(n-1))
+    
+    # get the root of the tangent line
+    def tanroot(x):
+        return x - f(x)/fp(x)
+
+    # iteratively take the root of the tangent line until it converges
+    def iterate(guess):
+        if round(guess, p) == round(tanroot(guess), p):
+            return guess
+        else:
+            return iterate(tanroot(guess))
+
+    return iterate(a)
 
 # --------------------------------------------------
 if __name__ == '__main__':
