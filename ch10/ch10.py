@@ -2,7 +2,7 @@
 """
 Author : gidonkaminer <gidonkaminer@localhost>
 Date   : 2026-03-24
-Purpose: Rock the Casbah
+Purpose: Gradient Descent
 """
 
 import argparse
@@ -22,7 +22,11 @@ def get_args():
     """Get command-line arguments"""
 
     parser = argparse.ArgumentParser(
-        description='Rock the Casbah',
+        description="""Find min/max of function by gradient descent/ascent.
+        Functions are labeled 0 to 4. By default, runs gradient descent
+        with initial guess init. For ascent, '-a'/'--ascent'.
+        To try a range of initial guesses, give upper bound with
+        '-u'/'--upper' (then init is lower bound).""",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('func',
@@ -65,7 +69,7 @@ def get_args():
 
 # --------------------------------------------------
 def main():
-    """Make a jazz noise here"""
+    """calculate minimum of function by gradient descent/ascent"""
 
     derivs = [
         [lambda x: 2*x, 'f(x)=x^2', lambda x: x**2],
@@ -101,8 +105,13 @@ def main():
         #     print(f'for inital guess {guess}: x={gradient_descent(deriv, alph, prec, guess, asc)}')
         xs = []
         for start in range(init,upper):
-            x = gradient_descent(deriv, alph, prec, start, asc)
-            xs.append(x)
+            try:
+                x = gradient_descent(deriv, alph, prec, start, asc)
+                xs.append(x)
+            except OverflowError:
+                pass
+            except RecursionError:
+                pass
         f_xs = list(map(func,xs))
 
         min_ind = 0
@@ -126,18 +135,19 @@ def gradient_descent(fp,alpha,precision,init,asc):
         else:
             return x + alpha * fp(x)
 
-    def iterate(guess):
+    def iterate(guess, n):
         """check if a guess is within the precision range
         otherwise update it"""
-        #print(f'step {n}: {guess}')
-        #n += 1
+        #print(f"step {n}: x={guess}, f'(x)={fp(guess)}")
         if abs(round(fp(guess),10)) < 1/10**precision:
             return guess
         else:
-            return iterate(update(guess))
+            return iterate(update(guess), (n+1))
 
     # run iterate starting with the initial guess
-    return iterate(init)
+    # the second argument (1) is just for debugging,
+    # for counting the number of steps
+    return iterate(init, 1)
 
 # --------------------------------------------------
 if __name__ == '__main__':
