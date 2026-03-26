@@ -41,37 +41,77 @@ def get_args():
                         help='stop descent when lower than 1/10**p')
 
     parser.add_argument('init',
-                        metavar='init',
-                        type=float,
+                        metavar='int',
+                        type=int,
                         help='initial guess value')
 
     parser.add_argument('-a','--ascent',
                         help='gradient ascent',
                         action='store_true')
 
-    return parser.parse_args()
+    parser.add_argument('-u', '--upper',
+                        help='upper bounds for guesses',
+                        metavar='int',
+                        type=int)
+
+    args = parser.parse_args()
+
+    if args.upper:
+        if args.upper < args.init:
+            parser.error('upper bound must be at least equal to lower bound')
+
+    return args
 
 
 # --------------------------------------------------
 def main():
     """Make a jazz noise here"""
 
-    args = get_args()
     derivs = [
-        [lambda x: 2*x, 'f(x)=x^2'],
-        [lambda x: 2*x + 1, 'f(x)=x^2+x+1'],
-        [lambda x: 4*(x**3) + 3*(x**2) - 4*x, 'f(x)=x^4+x^3-2x^2'],
-        [lambda x: 3*(x**2) - 4*(x**3) - 2*x, 'f(x)=x^3-x^4-x^2'],
-        [lambda x: (cos(x)/(x**2+1)) - ((2*x*sin(x))/(x**2+1)**2), 'f(x)=sin(x)/(1+x^2)'],
-        [lambda x: (-3*sin(x)) + (x**2 * e**sin(x) * cos(x)) + (2*x*(e**sin(x))), 'f(x)=3cos(x)+(x^2)e^(sin(x))']
+        [lambda x: 2*x, 'f(x)=x^2', lambda x: x**2],
+        [lambda x: 2*x + 1, 'f(x)=x^2+x+1', lambda x: x**2 + x + 1],
+        [lambda x: 4*(x**3) + 3*(x**2) - 4*x, 'f(x)=x^4+x^3-2x^2', lambda x: x**4 + x**3 - 2*x**2],
+        [lambda x: 3*(x**2) - 4*(x**3) - 2*x, 'f(x)=x^3-x^4-x^2', lambda x: x**3 - x**4 - x**2],
+        [lambda x: (cos(x)/(x**2+1)) - ((2*x*sin(x))/(x**2+1)**2), 'f(x)=sin(x)/(1+x^2)', lambda x: sin(x)/(1+x**2)],
+        [lambda x: (-3*sin(x)) + (x**2 * e**sin(x) * cos(x)) + (2*x*(e**sin(x))), 'f(x)=3cos(x)+(x^2)e^(sin(x))', lambda x: 3*cos(x) + (x**2)*(e**sin(x))]
     ]
-    if args.ascent:
-        mode = 'ascent'
-    else:
-        mode = 'descent'
 
-    print(f'using gradient {mode} to find minimum of {derivs[args.func][1]}')
-    print(f'result: x={gradient_descent(derivs[args.func][0], args.alph, args.prec, args.init, args.ascent)}')
+    args = get_args()
+    func_name = derivs[args.func][1]
+    func = derivs[args.func][2]
+    deriv = derivs[args.func][0]
+    alph = args.alph
+    prec = args.prec
+    asc = args.ascent
+    init = args.init
+
+    if asc:
+        mode = ['ascent','maximum']
+    else:
+        mode = ['descent','minimum']
+
+    print(f'using gradient {mode[0]} to approximate {mode[1]} of {func_name}')
+    if not args.upper:
+        x = gradient_descent(deriv, alph, prec, init, asc)
+        print(f'result: x={x}, f(x)={func(x)}')
+    else:
+        upper = args.upper
+        print(f'trying initial guesses from {init} to {upper}')
+        # for start in range(init,upper):
+        #     print(f'for inital guess {guess}: x={gradient_descent(deriv, alph, prec, guess, asc)}')
+        xs = []
+        for start in range(init,upper):
+            x = gradient_descent(deriv, alph, prec, start, asc)
+            xs.append(x)
+        f_xs = list(map(func,xs))
+
+        min_ind = 0
+        for i in range(len(f_xs)):
+            if f_xs[i] < f_xs[min_ind]:
+                min_ind = i
+            
+        print(f'result: x={xs[min_ind]}, f(x)={f_xs[min_ind]}')
+
 
 # --------------------------------------------------
 def gradient_descent(fp,alpha,precision,init,asc):
@@ -86,20 +126,18 @@ def gradient_descent(fp,alpha,precision,init,asc):
         else:
             return x + alpha * fp(x)
 
-    def iterate(guess,n):
+    def iterate(guess):
         """check if a guess is within the precision range
         otherwise update it"""
-        print(f'step {n}: {guess}')
-        n += 1
+        #print(f'step {n}: {guess}')
+        #n += 1
         if abs(round(fp(guess),10)) < 1/10**precision:
             return guess
         else:
-            return iterate(update(guess),n)
+            return iterate(update(guess))
 
     # run iterate starting with the initial guess
-    return iterate(init,1)
-
-
+    return iterate(init)
 
 # --------------------------------------------------
 if __name__ == '__main__':
